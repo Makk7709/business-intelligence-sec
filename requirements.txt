@@ -1,0 +1,11 @@
+langchain
+llama-index
+openai
+pandas
+numpy
+tqdm
+PyMuPDF
+beautifulsoup4
+requests
+streamlit
+matplotlib
