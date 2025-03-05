@@ -18,9 +18,147 @@ def load_json_file(file_path):
     except Exception as e:
         return {"error": str(e)}
 
+# Nouvelle fonction pour charger les données des indicateurs
+def load_indicators_data(company="tesla"):
+    """
+    Charge les données des indicateurs pour une entreprise spécifique.
+    Essaie d'abord de charger depuis le dossier demo/enhanced, puis depuis le dossier racine.
+    """
+    # Chemins possibles pour les données
+    paths = [
+        f"data/results/demo/enhanced/{company}_enhanced_analysis.json",
+        f"data/results/{company}_financial_data.json"
+    ]
+    
+    # Essayer de charger les données depuis l'un des chemins
+    for path in paths:
+        if os.path.exists(path):
+            data = load_json_file(path)
+            if not isinstance(data, dict) or "error" in data:
+                continue
+                
+            # Extraire les indicateurs clés
+            indicators = {}
+            
+            # Récupérer les années disponibles (en prenant la première métrique disponible)
+            years = []
+            if "metrics" in data and "revenue" in data["metrics"]:
+                years = sorted(data["metrics"]["revenue"].keys(), reverse=True)
+            elif "metrics" in data and len(data["metrics"]) > 0:
+                # Prendre la première métrique disponible
+                first_metric = next(iter(data["metrics"].values()))
+                years = sorted(first_metric.keys(), reverse=True)
+                
+            if not years:
+                continue
+                
+            # Année la plus récente
+            latest_year = years[0] if years else None
+            previous_year = years[1] if len(years) > 1 else None
+            
+            # Récupérer les valeurs des indicateurs
+            if latest_year:
+                # Revenue
+                if "metrics" in data and "revenue" in data["metrics"] and latest_year in data["metrics"]["revenue"]:
+                    revenue_value = data["metrics"]["revenue"][latest_year]
+                    indicators["revenue"] = {
+                        "value": revenue_value,
+                        "label": "Revenue",
+                        "format": "$"
+                    }
+                    
+                    # Calculer la tendance YoY pour le revenu
+                    if previous_year and previous_year in data["metrics"]["revenue"]:
+                        try:
+                            current = float(revenue_value.replace(",", ""))
+                            previous = float(data["metrics"]["revenue"][previous_year].replace(",", ""))
+                            if previous > 0:
+                                yoy_change = ((current - previous) / previous) * 100
+                                indicators["revenue"]["trend"] = yoy_change
+                                indicators["revenue"]["trend_direction"] = "up" if yoy_change >= 0 else "down"
+                        except (ValueError, TypeError):
+                            pass
+                
+                # Net Profit (Net Income)
+                if "metrics" in data and "net_income" in data["metrics"] and latest_year in data["metrics"]["net_income"]:
+                    net_income_value = data["metrics"]["net_income"][latest_year]
+                    indicators["net_profit"] = {
+                        "value": net_income_value,
+                        "label": "Net Profit",
+                        "format": "$"
+                    }
+                    
+                    # Calculer la tendance YoY pour le net income
+                    if previous_year and previous_year in data["metrics"]["net_income"]:
+                        try:
+                            current = float(net_income_value.replace(",", ""))
+                            previous = float(data["metrics"]["net_income"][previous_year].replace(",", ""))
+                            if previous > 0:
+                                yoy_change = ((current - previous) / previous) * 100
+                                indicators["net_profit"]["trend"] = yoy_change
+                                indicators["net_profit"]["trend_direction"] = "up" if yoy_change >= 0 else "down"
+                        except (ValueError, TypeError):
+                            pass
+                
+                # Gross Margin
+                if "ratios" in data and "gross_margin" in data["ratios"] and latest_year in data["ratios"]["gross_margin"]:
+                    gross_margin_value = data["ratios"]["gross_margin"][latest_year]
+                    indicators["gross_margin"] = {
+                        "value": gross_margin_value,
+                        "label": "Gross Margin",
+                        "format": "%"
+                    }
+                    
+                    # Calculer la tendance YoY pour la marge brute
+                    if previous_year and previous_year in data["ratios"]["gross_margin"]:
+                        try:
+                            current = float(gross_margin_value)
+                            previous = float(data["ratios"]["gross_margin"][previous_year])
+                            yoy_change = current - previous
+                            indicators["gross_margin"]["trend"] = yoy_change
+                            indicators["gross_margin"]["trend_direction"] = "up" if yoy_change >= 0 else "down"
+                        except (ValueError, TypeError):
+                            pass
+                
+                # P/E Ratio (si disponible, sinon utiliser ROE comme alternative)
+                if "ratios" in data and "roe" in data["ratios"] and latest_year in data["ratios"]["roe"]:
+                    roe_value = data["ratios"]["roe"][latest_year]
+                    indicators["pe_ratio"] = {
+                        "value": roe_value,
+                        "label": "ROE",
+                        "format": ""
+                    }
+                    
+                    # Calculer la tendance YoY pour le ROE
+                    if previous_year and previous_year in data["ratios"]["roe"]:
+                        try:
+                            current = float(roe_value)
+                            previous = float(data["ratios"]["roe"][previous_year])
+                            yoy_change = current - previous
+                            indicators["pe_ratio"]["trend"] = yoy_change
+                            indicators["pe_ratio"]["trend_direction"] = "up" if yoy_change >= 0 else "down"
+                        except (ValueError, TypeError):
+                            pass
+            
+            return indicators
+    
+    # Si aucune donnée n'est trouvée, retourner des valeurs par défaut
+    return {
+        "revenue": {"value": "245.8M", "label": "Revenue", "format": "$", "trend": 5.2, "trend_direction": "up"},
+        "gross_margin": {"value": 42.3, "label": "Gross Margin", "format": "%", "trend": 1.8, "trend_direction": "up"},
+        "net_profit": {"value": "36.4M", "label": "Net Profit", "format": "$", "trend": 3.7, "trend_direction": "up"},
+        "pe_ratio": {"value": 18.5, "label": "P/E Ratio", "format": "", "trend": -2.1, "trend_direction": "down"}
+    }
+
 # Route pour la page d'accueil
 @app.route("/")
 def index():
+    # Récupérer l'entreprise sélectionnée depuis les paramètres de requête
+    company = request.args.get('company', 'tesla')
+    
+    # Charger les données des indicateurs
+    indicators = load_indicators_data(company)
+    
     html = """
     <!DOCTYPE html>
     <html lang="en">
@@ -252,29 +390,42 @@ def index():
                     <h1>Financial Analysis Dashboard</h1>
                 </header>
                 
+                <!-- Company Selector -->
+                <div class="content-card">
+                    <div class="company-selector">
+                        <form action="/" method="get">
+                            <label for="company">Select a company:</label>
+                            <select id="company" name="company" onchange="this.form.submit()">
+                                <option value="tesla" {% if company == 'tesla' %}selected{% endif %}>Tesla</option>
+                                <option value="apple" {% if company == 'apple' %}selected{% endif %}>Apple</option>
+                                <option value="microsoft" {% if company == 'microsoft' %}selected{% endif %}>Microsoft</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                
                 <!-- Top Indicators Section -->
                 <div class="indicators">
                     <div class="indicators-grid">
+                        {% for key, indicator in indicators.items() %}
                         <div class="indicator-card">
-                            <h3>Revenue</h3>
-                            <div class="indicator-value">$245.8M</div>
-                            <div class="indicator-trend trend-up">+5.2% YoY</div>
+                            <h3>{{ indicator.label }}</h3>
+                            <div class="indicator-value">
+                                {% if indicator.format == '$' %}
+                                    ${{ indicator.value }}
+                                {% elif indicator.format == '%' %}
+                                    {{ "%.1f"|format(indicator.value|float) }}%
+                                {% else %}
+                                    {{ "%.1f"|format(indicator.value|float) }}
+                                {% endif %}
+                            </div>
+                            {% if indicator.trend is defined %}
+                            <div class="indicator-trend {% if indicator.trend_direction == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                                {% if indicator.trend_direction == 'up' %}+{% else %}-{% endif %}{{ "%.1f"|format(indicator.trend|abs) }}% YoY
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="indicator-card">
-                            <h3>Gross Margin</h3>
-                            <div class="indicator-value">42.3%</div>
-                            <div class="indicator-trend trend-up">+1.8% YoY</div>
-                        </div>
-                        <div class="indicator-card">
-                            <h3>Net Profit</h3>
-                            <div class="indicator-value">$36.4M</div>
-                            <div class="indicator-trend trend-up">+3.7% YoY</div>
-                        </div>
-                        <div class="indicator-card">
-                            <h3>P/E Ratio</h3>
-                            <div class="indicator-value">18.5</div>
-                            <div class="indicator-trend trend-down">-2.1 YoY</div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
                 
@@ -305,7 +456,7 @@ def index():
     </body>
     </html>
     """
-    return render_template_string(html)
+    return render_template_string(html, company=company, indicators=indicators)
 
 # Route pour l'API de statut
 @app.route("/api/status")
@@ -880,6 +1031,12 @@ def api_ratios(company):
         return jsonify({"error": f"No ratios found for {company}"})
     
     return jsonify(load_json_file(ratios_file))
+
+# API pour récupérer les indicateurs d'une entreprise
+@app.route("/api/indicators/<company>")
+def api_indicators(company):
+    indicators = load_indicators_data(company)
+    return jsonify(indicators)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
