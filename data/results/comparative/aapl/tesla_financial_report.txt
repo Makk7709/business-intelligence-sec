@@ -1,0 +1,69 @@
+RAPPORT D'ANALYSE FINANCIÈRE DE TESLA
+===================================
+
+MÉTRIQUES FINANCIÈRES CLÉS :
+---------------------------
+Revenus (en millions $) :
+  2022: $368,234
+  2023: $375,970
+  2024: $390,036
+
+Bénéfice net (en millions $) :
+  2022: $99,803
+  2023: $94,320
+  2024: $97,150
+
+Bénéfice brut (en millions $) :
+  2022: $170,782
+  2023: $162,569
+  2024: $170,876
+
+Actifs totaux (en millions $) :
+  2023: $352,755
+  2024: $353,430
+
+Passifs totaux (en millions $) :
+  2023: $266,068
+  2024: $259,325
+
+RATIOS FINANCIERS :
+-----------------
+Marge brute (%) :
+  2022: 46.38%
+  2023: 43.24%
+  2024: 43.81%
+
+Marge nette (%) :
+  2022: 27.10%
+  2023: 25.09%
+  2024: 24.91%
+
+Ratio d'endettement (%) :
+  2023: 75.43%
+  2024: 73.37%
+
+ANALYSE DES TENDANCES :
+---------------------
+Croissance des revenus :
+  2022-2023: 2.10%
+  2023-2024: 3.74%
+  → Accélération de la croissance des revenus en 2024.
+
+Croissance du bénéfice net :
+  2022-2023: -5.49%
+  2023-2024: 3.00%
+  → Accélération de la croissance du bénéfice net en 2024.
+
+Évolution des marges :
+  Marge brute : 46.38% (2022) → 43.24% (2023) → 43.81% (2024)
+  Marge nette : 27.10% (2022) → 25.09% (2023) → 24.91% (2024)
+  → Stabilisation ou amélioration de la marge brute en 2024.
+  → Forte détérioration de la marge nette en 2024.
+
+Évolution du ratio d'endettement :
+  75.43% (2023) → 73.37% (2024)
+  → Diminution du ratio d'endettement, indiquant une amélioration de la structure financière.
+
+CONCLUSION :
+-----------
+Tesla a maintenu une croissance positive tant au niveau des revenus que du bénéfice net en 2024, bien que le rythme de croissance se soit ralenti par rapport à l'année précédente. La structure financière reste solide avec un ratio d'endettement maîtrisé.

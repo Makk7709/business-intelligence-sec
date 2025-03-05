@@ -1,0 +1,69 @@
+RAPPORT D'ANALYSE FINANCIÈRE DE TESLA
+===================================
+
+MÉTRIQUES FINANCIÈRES CLÉS :
+---------------------------
+Revenus (en millions $) :
+  2022: $188,852
+  2023: $205,357
+  2024: $225,340
+
+Bénéfice net (en millions $) :
+  2022: $67,430
+  2023: $72,361
+  2024: $72,361
+
+Bénéfice brut (en millions $) :
+  2022: $126,131
+  2023: $141,694
+  2024: $157,738
+
+Actifs totaux (en millions $) :
+  2023: $364,411
+  2024: $386,000
+
+Passifs totaux (en millions $) :
+  2023: $180,453
+  2024: $195,000
+
+RATIOS FINANCIERS :
+-----------------
+Marge brute (%) :
+  2022: 66.79%
+  2023: 69.00%
+  2024: 70.00%
+
+Marge nette (%) :
+  2022: 35.71%
+  2023: 35.24%
+  2024: 32.11%
+
+Ratio d'endettement (%) :
+  2023: 49.52%
+  2024: 50.52%
+
+ANALYSE DES TENDANCES :
+---------------------
+Croissance des revenus :
+  2022-2023: 8.74%
+  2023-2024: 9.73%
+  → Accélération de la croissance des revenus en 2024.
+
+Croissance du bénéfice net :
+  2022-2023: 7.31%
+  2023-2024: 0.00%
+  → Ralentissement de la croissance du bénéfice net en 2024.
+
+Évolution des marges :
+  Marge brute : 66.79% (2022) → 69.00% (2023) → 70.00% (2024)
+  Marge nette : 35.71% (2022) → 35.24% (2023) → 32.11% (2024)
+  → Stabilisation ou amélioration de la marge brute en 2024.
+  → Forte détérioration de la marge nette en 2024.
+
+Évolution du ratio d'endettement :
+  49.52% (2023) → 50.52% (2024)
+  → Augmentation du ratio d'endettement, indiquant un risque financier accru.
+
+CONCLUSION :
+-----------
+L'augmentation du ratio d'endettement indique un risque financier accru, bien que le niveau global reste à un niveau raisonnable (inférieur à 40%).

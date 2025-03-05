@@ -1,0 +1,65 @@
+=================================================================
+                RAPPORT DE PRÉDICTION FINANCIÈRE                 
+=================================================================
+
+1. RÉSUMÉ DES PRÉDICTIONS
+-------------------------
+
+Métriques financières prédites:
+
+Année     Revenus             Bénéfice Net        Bénéfice Brut       
+----------------------------------------------------------------------
+2022      $81,462             $12,583             $20,853             
+2023      $96,773             $14,975             $17,660             
+2024      $97,690             $7,146              $17,450             
+2025      $108,203            $6,131              $15,251             
+2026      $116,317            $3,412              $13,550             
+
+Ratios financiers prédits:
+
+Année     Marge Nette         Marge Brute         
+--------------------------------------------------
+2022      15.45%    25.60%              
+2023      15.47%    18.25%              
+2024      7.31%     17.86%              
+2025      5.67%     14.10%              
+2026      2.93%     11.65%              
+
+2. ANALYSE DES TENDANCES
+------------------------
+
+Taux de croissance annuel moyen prédit:
+
+- Revenus: 9.12%
+- Bénéfice Net: -30.90%
+- Bénéfice Brut: -11.88%
+
+3. NIVEAU DE CONFIANCE DES PRÉDICTIONS
+-------------------------------------
+
+- Revenus: 79.22%
+- Bénéfice Net: 45.91%
+- Bénéfice Brut: 79.61%
+
+4. INTERPRÉTATION DES RÉSULTATS
+------------------------------
+
+Revenus:
+- Croissance modérée prévue des revenus
+- Taux de croissance annuel moyen prévu: 9.12%
+
+Bénéfice net:
+- Baisse significative prévue du bénéfice net
+- Taux de croissance annuel moyen prévu: -30.90%
+
+Marge nette:
+- Détérioration significative prévue de la marge nette
+- Marge nette actuelle (2024): 7.31%
+- Marge nette prévue (2026): 2.93%
+
+5. CONCLUSION
+------------
+
+Les prédictions indiquent des défis potentiels pour les prochaines années, avec une tendance à la baisse dans plusieurs indicateurs financiers clés. Le niveau de confiance dans ces prédictions est relativement élevé, ce qui suggère une bonne fiabilité des projections.
+
+Note: Ces prédictions sont basées sur une analyse de régression linéaire des données historiques et ne tiennent pas compte des facteurs externes tels que les changements de marché, les innovations technologiques ou les événements macroéconomiques qui pourraient influencer significativement les performances futures de l'entreprise.

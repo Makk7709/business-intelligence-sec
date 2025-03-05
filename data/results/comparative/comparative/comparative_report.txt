@@ -1,0 +1,91 @@
+RAPPORT D'ANALYSE FINANCIÈRE COMPARATIVE
+======================================
+
+COMPARAISON DES REVENUS (en millions $) :
+--------------------------------------
+TSLA :
+  2022: $81,462
+  2023: $96,773
+  2024: $97,690
+  Croissance 2022-2023: 18.80%
+  Croissance 2023-2024: 0.95%
+
+AAPL :
+  2022: $368,234
+  2023: $375,970
+  2024: $390,036
+  Croissance 2022-2023: 2.10%
+  Croissance 2023-2024: 3.74%
+
+MSFT :
+  2022: $188,852
+  2023: $205,357
+  2024: $225,340
+  Croissance 2022-2023: 8.74%
+  Croissance 2023-2024: 9.73%
+
+
+COMPARAISON DES MARGES NETTES (%) :
+----------------------------------
+TSLA :
+  2022: 15.45%
+  2023: 15.47%
+  2024: 7.32%
+  Variation 2022-2023: 0.02 points
+  Variation 2023-2024: -8.15 points
+
+AAPL :
+  2022: 27.10%
+  2023: 25.09%
+  2024: 24.91%
+  Variation 2022-2023: -2.02 points
+  Variation 2023-2024: -0.18 points
+
+MSFT :
+  2022: 35.71%
+  2023: 35.24%
+  2024: 32.11%
+  Variation 2022-2023: -0.47 points
+  Variation 2023-2024: -3.12 points
+
+
+COMPARAISON DES RATIOS D'ENDETTEMENT (%) :
+----------------------------------------
+TSLA :
+  2023: 40.34%
+  2024: 39.64%
+  Variation 2023-2024: -0.70 points
+
+AAPL :
+  2023: 75.43%
+  2024: 73.37%
+  Variation 2023-2024: -2.05 points
+
+MSFT :
+  2023: 49.52%
+  2024: 50.52%
+  Variation 2023-2024: 1.00 points
+
+
+CLASSEMENT DES ENTREPRISES (2024) :
+--------------------------------
+Par revenus (du plus élevé au plus faible) :
+  1. AAPL: $390,036
+  2. MSFT: $225,340
+  3. TSLA: $97,690
+
+Par marge nette (de la plus élevée à la plus faible) :
+  1. MSFT: 32.11%
+  2. AAPL: 24.91%
+  3. TSLA: 7.32%
+
+Par ratio d'endettement (du plus faible au plus élevé) :
+  1. TSLA: 39.64%
+  2. MSFT: 50.52%
+  3. AAPL: 73.37%
+
+CONCLUSION :
+-----------
+En 2024, MSFT a enregistré la meilleure croissance des revenus avec 9.73%. MSFT a affiché la meilleure marge nette avec 32.11%. TSLA présente la structure financière la plus solide avec un ratio d'endettement de 39.64%.
+
+Cette analyse comparative permet d'identifier les forces et faiblesses relatives de chaque entreprise et de mieux comprendre leur positionnement concurrentiel dans le secteur.
