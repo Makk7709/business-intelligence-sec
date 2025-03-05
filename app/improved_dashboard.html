@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord financier amélioré</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .indicator {
+            text-align: center;
+            padding: 20px;
+        }
+        .indicator h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .indicator p {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .chart-container {
+            height: 300px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-4">Tableau de bord financier</h1>
+                <p class="lead">Analyse des performances financières</p>
+            </div>
+            <div class="col-auto">
+                <div class="form-group">
+                    <label for="company">Entreprise:</label>
+                    <select class="form-control" id="company" onchange="updateDashboard()">
+                        <option value="TSLA" selected>Tesla</option>
+                        <option value="AAPL">Apple</option>
+                        <option value="MSFT">Microsoft</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card indicator">
+                    <h3>Croissance du revenu</h3>
+                    <p id="revenueGrowth" class="positive">+20%</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card indicator">
+                    <h3>Marge nette</h3>
+                    <p id="netMargin">25%</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card indicator">
+                    <h3>Variation marge nette</h3>
+                    <p id="netMarginVariation">0%</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card indicator">
+                    <h3>Ratio d'endettement</h3>
+                    <p id="debtRatio">28%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Revenus</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Marge nette</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="marginsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Ratio d'endettement</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="debtChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Classement 2024</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h4>Revenus</h4>
+                                <ul id="revenueRanking" class="list-group">
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h4>Marge nette</h4>
+                                <ul id="marginRanking" class="list-group">
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h4>Ratio d'endettement</h4>
+                                <ul id="debtRanking" class="list-group">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données financières réelles
+        const financialData = {
+            "revenue": {
+                "TSLA": {
+                    "2022": 81462.0,
+                    "2023": 96773.0,
+                    "2024": 97690.0
+                },
+                "AAPL": {
+                    "2022": 368234.0,
+                    "2023": 375970.0,
+                    "2024": 390036.0
+                },
+                "MSFT": {
+                    "2022": 188852.0,
+                    "2023": 205357.0,
+                    "2024": 225340.0
+                }
+            },
+            "net_margin": {
+                "TSLA": {
+                    "2022": 15.45,
+                    "2023": 15.47,
+                    "2024": 7.32,
+                    "variation_2022_2023": 0.02,
+                    "variation_2023_2024": -8.15
+                },
+                "AAPL": {
+                    "2022": 27.10,
+                    "2023": 25.09,
+                    "2024": 24.91,
+                    "variation_2022_2023": -2.01,
+                    "variation_2023_2024": -0.18
+                },
+                "MSFT": {
+                    "2022": 35.71,
+                    "2023": 35.24,
+                    "2024": 32.11,
+                    "variation_2022_2023": -0.47,
+                    "variation_2023_2024": -3.13
+                }
+            },
+            "debt_ratio": {
+                "TSLA": {
+                    "2023": 40.34,
+                    "2024": 39.64,
+                    "variation_2023_2024": -0.70
+                },
+                "AAPL": {
+                    "2023": 75.43,
+                    "2024": 73.37,
+                    "variation_2023_2024": -2.06
+                },
+                "MSFT": {
+                    "2023": 49.52,
+                    "2024": 50.52,
+                    "variation_2023_2024": 0.99
+                }
+            },
+            "ranking": {
+                "revenue": [
+                    {
+                        "company": "AAPL",
+                        "value": 390036.0
+                    },
+                    {
+                        "company": "MSFT",
+                        "value": 225340.0
+                    },
+                    {
+                        "company": "TSLA",
+                        "value": 97690.0
+                    }
+                ],
+                "net_margin": [
+                    {
+                        "company": "MSFT",
+                        "value": 32.11
+                    },
+                    {
+                        "company": "AAPL",
+                        "value": 24.91
+                    },
+                    {
+                        "company": "TSLA",
+                        "value": 7.32
+                    }
+                ],
+                "debt_ratio": [
+                    {
+                        "company": "TSLA",
+                        "value": 39.64
+                    },
+                    {
+                        "company": "MSFT",
+                        "value": 50.52
+                    },
+                    {
+                        "company": "AAPL",
+                        "value": 73.37
+                    }
+                ]
+            }
+        };
+
+        // Mapping des codes d'entreprise aux noms complets
+        const companyNames = {
+            "TSLA": "Tesla",
+            "AAPL": "Apple",
+            "MSFT": "Microsoft"
+        };
+
+        // Variables pour stocker les instances de graphiques
+        let revenueChart, marginsChart, debtChart;
+
+        // Fonction pour mettre à jour le tableau de bord en fonction de l'entreprise sélectionnée
+        function updateDashboard() {
+            const selectedCompany = document.getElementById('company').value;
+            
+            // Mise à jour des indicateurs
+            updateIndicators(selectedCompany);
+            
+            // Mise à jour des graphiques
+            updateCharts(selectedCompany);
+            
+            // Mise à jour des classements
+            updateRankings();
+        }
+
+        // Fonction pour mettre à jour les indicateurs
+        function updateIndicators(company) {
+            // Calcul de la croissance du revenu entre 2023 et 2024
+            const revenue2023 = financialData.revenue[company]["2023"];
+            const revenue2024 = financialData.revenue[company]["2024"];
+            const revenueGrowth = ((revenue2024 - revenue2023) / revenue2023) * 100;
+            
+            // Mise à jour de l'indicateur de croissance du revenu
+            const revenueGrowthElement = document.getElementById('revenueGrowth');
+            revenueGrowthElement.textContent = revenueGrowth.toFixed(2) + '%';
+            revenueGrowthElement.className = revenueGrowth >= 0 ? 'positive' : 'negative';
+            
+            // Mise à jour de l'indicateur de marge nette
+            const netMargin = financialData.net_margin[company]["2024"];
+            document.getElementById('netMargin').textContent = netMargin.toFixed(2) + '%';
+            
+            // Mise à jour de la variation de la marge nette
+            const netMarginVariation = financialData.net_margin[company]["variation_2023_2024"];
+            const netMarginVariationElement = document.getElementById('netMarginVariation');
+            netMarginVariationElement.textContent = netMarginVariation.toFixed(2) + '%';
+            netMarginVariationElement.className = netMarginVariation >= 0 ? 'positive' : 'negative';
+            
+            // Mise à jour du ratio d'endettement
+            const debtRatio = financialData.debt_ratio[company]["2024"];
+            document.getElementById('debtRatio').textContent = debtRatio.toFixed(2) + '%';
+        }
+
+        // Fonction pour mettre à jour les graphiques
+        function updateCharts(company) {
+            const years = ["2022", "2023", "2024"];
+            
+            // Données pour le graphique des revenus
+            const revenueData = years.map(year => financialData.revenue[company][year] / 1000); // Conversion en milliers pour une meilleure lisibilité
+            
+            // Données pour le graphique des marges
+            const netMarginData = years.map(year => financialData.net_margin[company][year]);
+            
+            // Données pour le graphique du ratio d'endettement
+            const debtRatioData = ["2023", "2024"].map(year => financialData.debt_ratio[company][year]);
+            
+            // Mise à jour ou création du graphique des revenus
+            if (revenueChart) {
+                revenueChart.data.datasets[0].data = revenueData;
+                revenueChart.update();
+            } else {
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                revenueChart = new Chart(revenueCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: years,
+                        datasets: [
+                            {
+                                label: 'Revenus (en milliers)',
+                                data: revenueData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString() + 'K';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Mise à jour ou création du graphique des marges
+            if (marginsChart) {
+                marginsChart.data.datasets[0].data = netMarginData;
+                marginsChart.update();
+            } else {
+                const marginsCtx = document.getElementById('marginsChart').getContext('2d');
+                marginsChart = new Chart(marginsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: years,
+                        datasets: [
+                            {
+                                label: 'Marge nette',
+                                data: netMarginData,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                tension: 0.1,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Mise à jour ou création du graphique du ratio d'endettement
+            if (debtChart) {
+                debtChart.data.datasets[0].data = debtRatioData;
+                debtChart.update();
+            } else {
+                const debtCtx = document.getElementById('debtChart').getContext('2d');
+                debtChart = new Chart(debtCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ["2023", "2024"],
+                        datasets: [
+                            {
+                                label: 'Ratio d\'endettement',
+                                data: debtRatioData,
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                tension: 0.1,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Fonction pour mettre à jour les classements
+        function updateRankings() {
+            // Mise à jour du classement des revenus
+            const revenueRanking = document.getElementById('revenueRanking');
+            revenueRanking.innerHTML = '';
+            financialData.ranking.revenue.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `${companyNames[item.company]}: $${Math.round(item.value).toLocaleString()}`;
+                revenueRanking.appendChild(li);
+            });
+            
+            // Mise à jour du classement des marges nettes
+            const marginRanking = document.getElementById('marginRanking');
+            marginRanking.innerHTML = '';
+            financialData.ranking.net_margin.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `${companyNames[item.company]}: ${item.value.toFixed(2)}%`;
+                marginRanking.appendChild(li);
+            });
+            
+            // Mise à jour du classement des ratios d'endettement
+            const debtRanking = document.getElementById('debtRanking');
+            debtRanking.innerHTML = '';
+            financialData.ranking.debt_ratio.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `${companyNames[item.company]}: ${item.value.toFixed(2)}%`;
+                debtRanking.appendChild(li);
+            });
+        }
+
+        // Initialisation du tableau de bord au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+        });
+    </script>
+</body>
+</html> 
