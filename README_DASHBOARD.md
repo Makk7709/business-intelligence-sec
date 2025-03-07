@@ -8,7 +8,7 @@ Ce projet est un dashboard financier interactif avec un assistant IA intégré. 
 - **Analyse comparative** : Comparaison des performances des entreprises
 - **Prédictions financières** : Prévisions des performances futures
 - **Mode nuit/jour** : Interface adaptable pour une meilleure lisibilité
-- **Assistant IA** : Assistant intelligent pour répondre à vos questions
+- **Assistant IA** : Assistant intelligent connecté à l'API OpenAI pour répondre à vos questions
 
 ## Installation
 
@@ -22,6 +22,10 @@ Ce projet est un dashboard financier interactif avec un assistant IA intégré. 
    ```bash
    pip install -r requirements.txt
    ```
+
+3. Configurez votre clé API OpenAI :
+   - Créez un fichier `.env` à la racine du projet
+   - Ajoutez votre clé API : `OPENAI_API_KEY=votre_clé_api_ici`
 
 ## Utilisation
 
@@ -42,11 +46,12 @@ Pour arrêter l'application, appuyez sur Ctrl+C dans le terminal où vous avez l
 ## Structure du projet
 
 - `app/dashboard_static.html` : Fichier HTML statique contenant le dashboard
-- `app/run_direct.py` : Script Flask pour servir le dashboard
+- `app/run_direct.py` : Script Flask pour servir le dashboard et gérer l'API OpenAI
 - `app/run_dashboard_simple.py` : Script alternatif pour lancer le dashboard
 - `app/GUIDE_UTILISATION.md` : Guide d'utilisation détaillé
 - `app/fix_charts.js` : Script JavaScript pour corriger les problèmes d'affichage des graphiques
 - `start_dashboard.py` : Script de démarrage simplifié
+- `INTEGRATION_OPENAI.md` : Documentation sur l'intégration de l'API OpenAI
 
 ## Fonctionnalités détaillées
 
