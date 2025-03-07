@@ -20,3 +20,28 @@ pandas==2.0.3
 unstructured==0.10.30
 pdf2image==1.16.3
 pytesseract==0.3.10
+
+# Pour l'intégration avec Alpha Vantage
+alpha_vantage==2.3.1
+
+# Pour l'intégration avec EDGAR
+sec-edgar-downloader==4.3.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Pour l'exportation de fichiers
+reportlab==4.0.4  # Pour l'exportation PDF
+openpyxl==3.1.2   # Pour l'exportation Excel
+pdfminer.six==20221105  # Pour l'extraction de texte à partir de PDF
+
+# Pour les tests
+pytest==7.4.0
+pytest-flask==1.2.0
+
+# Pour la sécurité
+cryptography==41.0.3
+
+# Pour la visualisation
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.16.1

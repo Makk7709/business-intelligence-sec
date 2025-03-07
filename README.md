@@ -6,10 +6,14 @@ Ce projet est un dashboard d'intelligence financière qui intègre des technolog
 
 - **Dashboard interactif** : Visualisation des données financières d'Apple et Microsoft
 - **Assistant IA intégré** : Posez des questions en langage naturel sur les données financières
+- **Traitement de documents** : Extraction de données financières à partir de fichiers PDF
+- **Exportation de données** : Exportation des données financières aux formats CSV, Excel, PDF et JSON
 - **Intégration multi-technologies** :
   - **OpenAI (ChatGPT)** : Pour le traitement du langage naturel
   - **LangChain** : Pour la création de chaînes de traitement IA complexes
   - **Pinecone** : Pour la recherche vectorielle et la récupération de contexte
+  - **EDGAR** : Pour l'accès aux documents financiers officiels
+  - **Alpha Vantage** : Pour les données financières en temps réel
 
 ## Architecture
 
@@ -24,6 +28,8 @@ Cette architecture permet d'éviter les problèmes de segmentation fault et d'in
 - Python 3.8 ou supérieur
 - Clé API OpenAI
 - Clé API Pinecone (optionnel, mais recommandé pour la recherche vectorielle)
+- Clé API Alpha Vantage (optionnel, pour les données financières en temps réel)
+- Tesseract OCR (optionnel, pour l'extraction de texte à partir de PDF)
 
 ## Installation
 
@@ -49,6 +55,8 @@ Cette architecture permet d'éviter les problèmes de segmentation fault et d'in
    OPENAI_API_KEY=votre-clé-api-openai
    PINECONE_API_KEY=votre-clé-api-pinecone
    PINECONE_ENV=gcp-starter
+   ALPHA_VANTAGE_API_KEY=votre-clé-api-alpha-vantage
+   EDGAR_USER_AGENT=votre-email@example.com
    ```
 
 ## Utilisation
@@ -61,15 +69,59 @@ Cette architecture permet d'éviter les problèmes de segmentation fault et d'in
    - "Compare les revenus d'Apple et Microsoft sur les 3 dernières années"
    - "Quelles sont les prévisions de croissance pour Microsoft ?"
 
+### Traitement de documents PDF
+
+Pour traiter un document PDF et en extraire des données financières :
+
+1. Utilisez l'API `/api/pdf/process` avec une requête POST contenant le fichier PDF
+2. Les données extraites seront retournées au format JSON
+3. Le texte extrait et les données financières seront également sauvegardés dans des fichiers
+
+Exemple avec curl :
+```bash
+curl -X POST -F "file=@rapport_financier.pdf" http://127.0.0.1:5115/api/pdf/process
+```
+
+### Exportation de données
+
+Pour exporter des données financières dans différents formats :
+
+1. Utilisez l'API `/api/export/<format>` avec une requête POST contenant les données à exporter
+2. Les formats disponibles sont : csv, excel, pdf, json
+3. Le fichier exporté sera retourné ou son chemin sera indiqué dans la réponse
+
+Exemple avec curl :
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name":"Apple","metrics":{"revenue":{"years":[2022,2023,2024],"values":[368234,375970,390036]}}}' http://127.0.0.1:5115/api/export/csv
+```
+
 ## Structure des fichiers
 
 - `app/run_direct.py` : Point d'entrée de l'application Flask
 - `app/ai_bridge.py` : Pont entre l'application et les technologies d'IA
 - `app/dashboard_static.html` : Dashboard financier statique
+- `app/routes/api.py` : Routes API pour l'application
+- `app/core/` : Modules principaux de l'application
+  - `export_manager.py` : Gestion de l'exportation de données
+  - `pdf_processor.py` : Traitement des fichiers PDF
+  - `edgar_integration.py` : Intégration avec EDGAR
+  - `alpha_vantage_integration.py` : Intégration avec Alpha Vantage
 - `app/comm/` : Répertoire pour les fichiers de communication entre l'application et le pont IA
 - `data/` : Données financières et documents
+- `tests/` : Tests unitaires et d'intégration
 - `requirements.txt` : Dépendances Python
 - `run.sh` : Script d'installation et de lancement
+
+## Tests
+
+Le projet inclut des tests unitaires et d'intégration pour vérifier le bon fonctionnement des fonctionnalités.
+
+Pour exécuter tous les tests :
+```bash
+python tests/run_tests.py
+```
+
+Pour plus d'informations sur les tests, consultez le fichier `tests/README.md`.
 
 ## Dépannage
 
@@ -88,6 +140,12 @@ Si vous rencontrez des erreurs de segmentation (segmentation fault), assurez-vou
 Si l'assistant IA ne répond pas correctement :
 1. Vérifiez que vos clés API sont correctement configurées dans le fichier `.env`
 2. Consultez les logs dans `ai_bridge.log` pour plus d'informations
+
+### Problèmes avec le traitement des PDF
+
+Si l'extraction de texte à partir de PDF ne fonctionne pas correctement :
+1. Assurez-vous que Tesseract OCR est installé sur votre système
+2. Vérifiez les logs dans `pdf_processor.log` pour plus d'informations
 
 ## Licence
 
