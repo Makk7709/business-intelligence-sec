@@ -10,7 +10,6 @@ __pycache__/
 .Python
 build/__pycache__/
 *.log
-data/
 models/
 notebooks/
 .env
@@ -236,3 +235,11 @@ Thumbs.db
 # Fichiers spécifiques au projet
 *.db
 *.sqlite3
+
+# Fichiers de communication du pont IA
+app/comm/query.json
+app/comm/response.json
+app/comm/status.json
+
+# Logs du pont IA
+ai_bridge.log

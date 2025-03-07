@@ -6,9 +6,10 @@ import os
 import sys
 import logging
 import json
+import subprocess
+import time
 from flask import Flask, send_file, render_template_string, jsonify, request
 from dotenv import load_dotenv
-import openai
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -21,151 +22,227 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Port pour l'application
-PORT = 5115
+# Initialiser l'application Flask
+app = Flask(__name__)
+
+# Répertoire pour les fichiers de communication avec le pont IA
+COMM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'comm')
+os.makedirs(COMM_DIR, exist_ok=True)
+
+# Fichiers de communication
+QUERY_FILE = os.path.join(COMM_DIR, 'query.json')
+RESPONSE_FILE = os.path.join(COMM_DIR, 'response.json')
+STATUS_FILE = os.path.join(COMM_DIR, 'status.json')
 
 # Chemin vers le fichier HTML statique
-STATIC_HTML = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard_static.html')
+STATIC_HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard_static.html')
 
-# Configurer l'API OpenAI
-openai_api_key = os.getenv("OPENAI_API_KEY")
-if not openai_api_key:
-    logger.warning("Clé API OpenAI non trouvée. L'assistant IA utilisera des réponses prédéfinies.")
-else:
-    openai.api_key = openai_api_key
-    logger.info("API OpenAI configurée avec succès.")
+# Processus du pont IA
+ai_bridge_process = None
 
-# Créer l'application Flask
-app = Flask(__name__, static_folder='app/static')
+def start_ai_bridge():
+    """Démarre le processus du pont IA."""
+    global ai_bridge_process
+    
+    # Chemin vers le script du pont IA
+    ai_bridge_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ai_bridge.py')
+    
+    # Vérifier si le fichier existe
+    if not os.path.exists(ai_bridge_path):
+        logger.error(f"Le fichier du pont IA n'existe pas: {ai_bridge_path}")
+        return False
+    
+    try:
+        # Démarrer le processus du pont IA
+        ai_bridge_process = subprocess.Popen([sys.executable, ai_bridge_path], 
+                                            stdout=subprocess.PIPE, 
+                                            stderr=subprocess.PIPE)
+        
+        logger.info(f"Processus du pont IA démarré avec PID: {ai_bridge_process.pid}")
+        
+        # Attendre que le pont IA soit prêt
+        for _ in range(10):  # Attendre jusqu'à 10 secondes
+            if os.path.exists(STATUS_FILE):
+                try:
+                    with open(STATUS_FILE, 'r') as f:
+                        status = json.load(f)
+                    if status.get('status') == 'ready':
+                        logger.info("Le pont IA est prêt.")
+                        return True
+                except Exception as e:
+                    logger.warning(f"Erreur lors de la lecture du statut du pont IA: {str(e)}")
+            
+            time.sleep(1)
+        
+        logger.warning("Le pont IA n'est pas devenu prêt dans le délai imparti.")
+        return False
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du démarrage du pont IA: {str(e)}")
+        return False
+
+def stop_ai_bridge():
+    """Arrête le processus du pont IA."""
+    global ai_bridge_process
+    
+    if ai_bridge_process:
+        try:
+            ai_bridge_process.terminate()
+            ai_bridge_process.wait(timeout=5)
+            logger.info("Processus du pont IA arrêté.")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'arrêt du pont IA: {str(e)}")
+            try:
+                ai_bridge_process.kill()
+                logger.info("Processus du pont IA tué.")
+            except Exception as e2:
+                logger.error(f"Impossible de tuer le processus du pont IA: {str(e2)}")
+
+def send_query_to_ai_bridge(query, query_type='openai'):
+    """Envoie une requête au pont IA."""
+    try:
+        # Vérifier si le pont IA est en cours d'exécution
+        if not ai_bridge_process or ai_bridge_process.poll() is not None:
+            logger.warning("Le pont IA n'est pas en cours d'exécution. Tentative de redémarrage...")
+            if not start_ai_bridge():
+                return {
+                    "response": "Impossible de démarrer le pont IA. Veuillez réessayer plus tard.",
+                    "query": query,
+                    "source": "error"
+                }
+        
+        # Écrire la requête dans le fichier de communication
+        with open(QUERY_FILE, 'w') as f:
+            json.dump({
+                'query': query,
+                'type': query_type,
+                'timestamp': time.time()
+            }, f)
+        
+        logger.info(f"Requête envoyée au pont IA: {query[:50]}...")
+        
+        # Attendre la réponse
+        for _ in range(30):  # Attendre jusqu'à 30 secondes
+            if os.path.exists(RESPONSE_FILE):
+                try:
+                    with open(RESPONSE_FILE, 'r') as f:
+                        response = json.load(f)
+                    
+                    # Supprimer le fichier de réponse
+                    os.remove(RESPONSE_FILE)
+                    
+                    logger.info(f"Réponse reçue du pont IA: {response.get('response', '')[:50]}...")
+                    return response
+                except Exception as e:
+                    logger.warning(f"Erreur lors de la lecture de la réponse du pont IA: {str(e)}")
+            
+            time.sleep(1)
+        
+        logger.warning("Aucune réponse reçue du pont IA dans le délai imparti.")
+        return {
+            "response": "Aucune réponse reçue du pont IA dans le délai imparti. Veuillez réessayer plus tard.",
+            "query": query,
+            "source": "error"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'envoi de la requête au pont IA: {str(e)}")
+        return {
+            "response": f"Erreur lors de l'envoi de la requête au pont IA: {str(e)}",
+            "query": query,
+            "source": "error"
+        }
 
 @app.route('/')
 def index():
-    """Route principale qui sert le fichier HTML statique."""
-    return send_file(STATIC_HTML)
+    """Route principale pour servir le dashboard."""
+    return send_file(STATIC_HTML_PATH)
 
 @app.route('/api/ai-query', methods=['POST'])
 def ai_query():
-    """Route pour l'assistant IA."""
+    """Route pour traiter les requêtes de l'assistant IA."""
     data = request.json
     query = data.get('query', '')
+    query_type = data.get('type', 'openai')  # Par défaut, utiliser OpenAI
     
-    # Réponses prédéfinies pour l'assistant IA (utilisées si l'API OpenAI n'est pas disponible)
-    responses = {
-        'revenus': "Les revenus d'Apple ont atteint 390,036 millions de dollars en 2024, soit une augmentation de 3.7% par rapport à 2023.",
-        'marges': "La marge brute d'Apple était de 43.8% en 2024, tandis que celle de Microsoft était de 70.0%. Microsoft a une marge brute significativement plus élevée.",
-        'prévisions': "Selon nos prédictions, les revenus d'Apple devraient atteindre environ 405,637 millions de dollars en 2025 et 421,863 millions de dollars en 2026.",
-        'perspectives': "Les perspectives financières pour Apple sont positives, avec une croissance prévue des revenus et une stabilisation des marges brutes autour de 44%."
-    }
+    logger.info(f"Requête reçue: {query[:50]}... (type: {query_type})")
     
-    # Utiliser l'API OpenAI si disponible
-    if openai_api_key:
-        try:
-            logger.info(f"Envoi de la requête à OpenAI: {query}")
-            
-            # Contexte financier pour l'assistant
-            financial_context = """
-            Données financières d'Apple:
-            - Revenus: 390,036 millions de dollars en 2024, 375,970 millions en 2023, 368,234 millions en 2022
-            - Marge brute: 43.8% en 2024, 43.2% en 2023, 46.4% en 2022
-            - Bénéfice net: 97,150 millions de dollars en 2024, 94,320 millions en 2023, 99,803 millions en 2022
-            
-            Données financières de Microsoft:
-            - Revenus: 225,340 millions de dollars en 2024, 205,357 millions en 2023, 188,852 millions en 2022
-            - Marge brute: 70.0% en 2024, 69.0% en 2023, 66.8% en 2022
-            - Bénéfice net: 72,361 millions de dollars en 2024, 72,361 millions en 2023, 67,430 millions en 2022
-            
-            Prédictions pour Apple:
-            - Revenus: environ 405,637 millions de dollars en 2025, 421,863 millions en 2026
-            - Marge brute: environ 44.1% en 2025, 44.3% en 2026
-            
-            Prédictions pour Microsoft:
-            - Revenus: environ 245,621 millions de dollars en 2025, 267,726 millions en 2026
-            - Marge brute: environ 70.5% en 2025, 71.0% en 2026
-            """
-            
-            # Appel à l'API OpenAI
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": f"Tu es un assistant financier spécialisé dans l'analyse des données d'Apple et Microsoft. Réponds de manière concise et précise aux questions sur les données financières. Voici les données dont tu disposes: {financial_context}"},
-                    {"role": "user", "content": query}
-                ],
-                max_tokens=150,
-                temperature=0.7
-            )
-            
-            # Extraire la réponse
-            ai_response = response.choices[0].message.content
-            logger.info(f"Réponse d'OpenAI reçue: {ai_response[:50]}...")
-            
-            return jsonify({
-                'response': ai_response,
-                'query': query
-            })
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'appel à l'API OpenAI: {str(e)}")
-            logger.info("Utilisation des réponses prédéfinies comme fallback.")
+    # Vérifier si la requête est vide
+    if not query.strip():
+        return jsonify({
+            'response': "Je n'ai pas compris votre question. Pourriez-vous reformuler ?",
+            'query': query
+        })
     
-    # Utiliser les réponses prédéfinies si l'API OpenAI n'est pas disponible ou en cas d'erreur
-    response = "Je ne peux pas répondre à cette question pour le moment. Pourriez-vous reformuler ou poser une autre question?"
+    # Envoyer la requête au pont IA
+    response = send_query_to_ai_bridge(query, query_type)
     
-    if 'revenus' in query.lower() or 'revenue' in query.lower():
-        response = responses['revenus']
-    elif 'marge' in query.lower() or 'margin' in query.lower():
-        response = responses['marges']
-    elif 'prévision' in query.lower() or 'prediction' in query.lower():
-        response = responses['prévisions']
-    elif 'perspective' in query.lower() or 'outlook' in query.lower():
-        response = responses['perspectives']
-    
-    return jsonify({
-        'response': response,
-        'query': query
-    })
+    return jsonify(response)
 
 @app.route('/api/comparative-data', methods=['GET'])
 def get_comparative_data():
-    """Route pour les données comparatives."""
+    """Route pour obtenir les données comparatives."""
     # Données comparatives pour Apple et Microsoft
-    data = {
-        'years': ['2022', '2023', '2024'],
-        'companies': ['Apple', 'Microsoft'],
-        'revenue': {
-            'Apple': [368234, 375970, 390036],
-            'Microsoft': [188852, 205357, 225340]
+    comparative_data = {
+        "years": [2022, 2023, 2024],
+        "companies": ["Apple", "Microsoft"],
+        "revenue": {
+            "Apple": [368234, 375970, 390036],
+            "Microsoft": [188852, 205357, 225340]
         },
-        'grossMargin': {
-            'Apple': [46.4, 43.2, 43.8],
-            'Microsoft': [66.8, 69.0, 70.0]
+        "gross_margin": {
+            "Apple": [46.4, 43.2, 43.8],
+            "Microsoft": [66.8, 69.0, 70.0]
         },
-        'netIncome': {
-            'Apple': [99803, 94320, 97150],
-            'Microsoft': [67430, 72361, 72361]
+        "net_income": {
+            "Apple": [99803, 94320, 97150],
+            "Microsoft": [67430, 72361, 72361]
+        },
+        "growth_rate": {
+            "Apple": [7.8, 2.1, 3.7],
+            "Microsoft": [18.0, 8.7, 9.7]
         }
     }
-    return jsonify(data)
+    
+    return jsonify(comparative_data)
+
+@app.route('/api/load-document', methods=['POST'])
+def load_document():
+    """Route pour charger un document dans Pinecone."""
+    data = request.json
+    document_text = data.get('text', '')
+    document_title = data.get('title', 'Document sans titre')
+    
+    if not document_text.strip():
+        return jsonify({
+            'success': False,
+            'message': "Le document est vide."
+        })
+    
+    # Envoyer une requête spéciale au pont IA pour charger le document dans Pinecone
+    # Cette fonctionnalité n'est pas implémentée dans cette version
+    
+    return jsonify({
+        'success': True,
+        'message': f"Document '{document_title}' chargé avec succès (simulation)."
+    })
 
 def main():
-    """Fonction principale qui lance l'application."""
-    # Vérifier si le fichier HTML statique existe
-    if not os.path.exists(STATIC_HTML):
-        logger.error(f"Erreur: Le fichier {STATIC_HTML} n'existe pas.")
-        return 1
-    
-    # Lancer l'application
-    logger.info("=" * 80)
-    logger.info(f"Démarrage du dashboard financier complet sur le port {PORT}")
-    logger.info("=" * 80)
-    
+    """Fonction principale pour démarrer l'application."""
     try:
-        logger.info(f"Lancement de l'application sur le port {PORT}...")
-        logger.info(f"Accédez à l'application à l'adresse: http://127.0.0.1:{PORT}")
-        app.run(host='127.0.0.1', port=PORT)
-        return 0
-    except Exception as e:
-        logger.error(f"Erreur lors du lancement de l'application: {e}")
-        return 1
+        # Démarrer le pont IA
+        if start_ai_bridge():
+            logger.info("Pont IA démarré avec succès.")
+        else:
+            logger.warning("Impossible de démarrer le pont IA. L'assistant IA utilisera des réponses prédéfinies.")
+        
+        # Démarrer l'application Flask
+        app.run(host='127.0.0.1', port=5115, debug=False)
+    except KeyboardInterrupt:
+        logger.info("Arrêt de l'application...")
+    finally:
+        # Arrêter le pont IA
+        stop_ai_bridge()
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    main() 

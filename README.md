@@ -1,117 +1,93 @@
-# Business Intelligence pour l'Analyse Financière
+# Dashboard d'Intelligence Financière avec IA
 
-Outil de Business Intelligence pour analyser les documents financiers 10-K et 10-Q des entreprises cotées en bourse. Ce projet permet d'extraire, d'analyser et de visualiser les données financières à partir des rapports officiels.
+Ce projet est un dashboard d'intelligence financière qui intègre des technologies d'IA avancées (LangChain, ChatGPT et Pinecone) pour analyser des données financières d'entreprises comme Apple et Microsoft.
 
 ## Fonctionnalités
 
-- **Extraction de données** : Extraction automatisée des métriques financières clés à partir des rapports 10-K
-- **Analyse financière** : Calcul des ratios financiers et analyse des tendances
-- **Analyse comparative** : Comparaison des performances de plusieurs entreprises
-- **Prédictions** : Prévision des performances futures basée sur les données historiques
-- **Visualisations** : Graphiques et tableaux pour une meilleure compréhension des données
-- **Interface utilisateur** : Dashboard interactif pour explorer les données financières
-- **Interface web Flask** : Application web pour visualiser et analyser les données financières
+- **Dashboard interactif** : Visualisation des données financières d'Apple et Microsoft
+- **Assistant IA intégré** : Posez des questions en langage naturel sur les données financières
+- **Intégration multi-technologies** :
+  - **OpenAI (ChatGPT)** : Pour le traitement du langage naturel
+  - **LangChain** : Pour la création de chaînes de traitement IA complexes
+  - **Pinecone** : Pour la recherche vectorielle et la récupération de contexte
 
-## Structure du projet
+## Architecture
 
-- `src/` : Code source du système d'analyse financière
-  - `parser.py` : Extraction du texte à partir des PDF
-  - `financial_analyzer.py` : Analyse des données financières
-  - `financial_extractor.py` : Extraction des métriques financières
-  - `prediction_test.py` : Tests des fonctionnalités de prédiction
-  - `langchain_processor.py` : Intégration avec LangChain
-  - `langchain_integration.py` : Fonctions d'intégration avec LangChain
-  - `demo_langchain.py` : Démonstration des fonctionnalités LangChain
-- `app/` : Interfaces utilisateur
-  - `app.py` : Point d'entrée de l'application Streamlit
-  - `data_loader.py` : Chargement des données financières
-  - `visualizations.py` : Création des visualisations
-  - `pages.py` : Définition des pages de l'application Streamlit
-  - `flask_app.py` : Application Flask simple
-  - `finance_dashboard.py` : Application Flask complète
-  - `README.md` : Documentation de l'interface web
-- `data/` : Données d'entrée et résultats
-  - `results/` : Résultats de l'analyse financière
-  - `predictions/` : Prédictions de performance future
+L'application utilise une architecture en deux parties :
+1. **Application Flask** : Sert le dashboard et gère les requêtes API
+2. **Pont IA** : Processus séparé qui communique avec les technologies d'IA (OpenAI, LangChain, Pinecone)
+
+Cette architecture permet d'éviter les problèmes de segmentation fault et d'incompatibilité entre les bibliothèques.
+
+## Prérequis
+
+- Python 3.8 ou supérieur
+- Clé API OpenAI
+- Clé API Pinecone (optionnel, mais recommandé pour la recherche vectorielle)
 
 ## Installation
 
 1. Clonez ce dépôt :
-   ```bash
-   git clone https://github.com/Makk7709/business-intelligence-sec.git
+   ```
+   git clone https://github.com/votre-utilisateur/business-intelligence-sec.git
    cd business-intelligence-sec
    ```
 
-2. Créez un environnement virtuel et installez les dépendances :
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Sur Windows : venv\Scripts\activate
-   pip install -r requirements.txt
+2. Exécutez le script d'installation et de lancement :
+   ```
+   ./run.sh
    ```
 
-3. Configurez votre clé API OpenAI (pour les fonctionnalités LangChain) :
-   - Créez un fichier `.env` à la racine du projet
-   - Ajoutez votre clé API : `OPENAI_API_KEY=votre_clé_api_ici`
+   Ce script va :
+   - Créer un environnement virtuel Python
+   - Installer les dépendances nécessaires
+   - Créer un fichier `.env` si nécessaire
+   - Lancer l'application
+
+3. Configurez vos clés API dans le fichier `.env` :
+   ```
+   OPENAI_API_KEY=votre-clé-api-openai
+   PINECONE_API_KEY=votre-clé-api-pinecone
+   PINECONE_ENV=gcp-starter
+   ```
 
 ## Utilisation
 
-### Extraction et analyse des données financières
+1. Accédez au dashboard à l'adresse : http://127.0.0.1:5115
+2. Explorez les données financières d'Apple et Microsoft
+3. Utilisez l'assistant IA en cliquant sur le bouton d'assistant en bas à droite
+4. Posez des questions comme :
+   - "Quelle est la marge brute d'Apple en 2024 ?"
+   - "Compare les revenus d'Apple et Microsoft sur les 3 dernières années"
+   - "Quelles sont les prévisions de croissance pour Microsoft ?"
 
-```bash
-# Extraire et analyser les données d'une seule entreprise
-python src/financial_extractor.py --single
+## Structure des fichiers
 
-# Extraire et analyser les données de plusieurs entreprises
-python src/financial_extractor.py
-```
+- `app/run_direct.py` : Point d'entrée de l'application Flask
+- `app/ai_bridge.py` : Pont entre l'application et les technologies d'IA
+- `app/dashboard_static.html` : Dashboard financier statique
+- `app/comm/` : Répertoire pour les fichiers de communication entre l'application et le pont IA
+- `data/` : Données financières et documents
+- `requirements.txt` : Dépendances Python
+- `run.sh` : Script d'installation et de lancement
 
-### Prédictions de performance future
+## Dépannage
 
-```bash
-# Générer des prédictions de performance future
-python src/prediction_test.py
-```
+### Problèmes d'installation des dépendances
 
-### Interface utilisateur Streamlit
+Si vous rencontrez des problèmes lors de l'installation des dépendances, le script `run.sh` tentera d'installer les dépendances essentielles pour que l'application fonctionne avec des fonctionnalités réduites.
 
-```bash
-# Lancer l'interface utilisateur Streamlit
-streamlit run app/app.py
-```
+### Erreurs de segmentation
 
-L'interface utilisateur Streamlit permet d'explorer les données financières de manière interactive :
-- **Page d'accueil** : Présentation de l'application
-- **Analyse individuelle** : Visualisation des métriques d'une entreprise
-- **Analyse comparative** : Comparaison des performances de plusieurs entreprises
-- **Prédictions** : Visualisation des prédictions de performance future
+Si vous rencontrez des erreurs de segmentation (segmentation fault), assurez-vous que :
+1. Vous utilisez le script `run.sh` pour lancer l'application
+2. Vous n'avez pas modifié l'architecture en deux parties (application Flask + pont IA)
 
-### Interface web Flask
+### Problèmes avec les API
 
-```bash
-# Lancer l'interface web Flask complète
-python app/finance_dashboard.py
-
-# Lancer l'interface web Flask simple
-python app/flask_app.py
-```
-
-L'interface web Flask offre les fonctionnalités suivantes :
-- **Visualisation des analyses existantes** : Exploration des résultats d'analyse
-- **Exécution de nouvelles analyses** : Lancement d'analyses sur les données disponibles
-- **Visualisation des métriques financières** : Tableaux et graphiques des métriques clés
-- **Visualisation des ratios financiers** : Tableaux et graphiques des ratios calculés
-- **Rapports d'investissement** : Affichage des rapports détaillés
-
-Pour plus d'informations sur l'interface web, consultez le fichier `app/README.md`.
-
-## Intégration LangChain
-
-Ce projet intègre LangChain pour améliorer l'analyse financière avec des modèles de langage. Pour plus d'informations, consultez le fichier `README_LANGCHAIN.md`.
-
-```bash
-# Démonstration des fonctionnalités LangChain
-python src/demo_langchain.py --demo enhance
-```
+Si l'assistant IA ne répond pas correctement :
+1. Vérifiez que vos clés API sont correctement configurées dans le fichier `.env`
+2. Consultez les logs dans `ai_bridge.log` pour plus d'informations
 
 ## Licence
 
