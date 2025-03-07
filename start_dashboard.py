@@ -12,6 +12,10 @@ import socket
 import webbrowser
 import subprocess
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
 
 # Configuration
 PORT = 5115
@@ -38,6 +42,24 @@ def kill_process_on_port(port):
         print(f"Erreur lors de la tentative de libération du port {port}: {e}")
         return False
 
+def check_openai_api_key():
+    """Vérifie si la clé API OpenAI est configurée."""
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        print("\n" + "!" * 80)
+        print("AVERTISSEMENT: Clé API OpenAI non trouvée.")
+        print("L'assistant IA utilisera des réponses prédéfinies au lieu de l'API OpenAI.")
+        print("Pour utiliser l'API OpenAI, créez un fichier .env à la racine du projet avec:")
+        print("OPENAI_API_KEY=votre_clé_api_ici")
+        print("!" * 80 + "\n")
+        return False
+    else:
+        print("\n" + "*" * 80)
+        print("INFO: Clé API OpenAI trouvée.")
+        print("L'assistant IA utilisera l'API OpenAI pour générer des réponses personnalisées.")
+        print("*" * 80 + "\n")
+        return True
+
 def main():
     """Fonction principale qui lance l'application."""
     # Vérifier si le script existe
@@ -45,6 +67,9 @@ def main():
         print(f"Erreur: Le fichier {SCRIPT_PATH} n'existe pas.")
         print("Veuillez vous assurer que vous êtes dans le répertoire racine du projet.")
         return 1
+
+    # Vérifier si la clé API OpenAI est configurée
+    check_openai_api_key()
 
     # Vérifier si le port est déjà utilisé
     if is_port_in_use(PORT):
