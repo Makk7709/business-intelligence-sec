@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #ddd;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #121212;
+            --text-color: #f0f0f0;
+            --card-bg: #1e1e1e;
+            --border-color: #333;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .key-metric {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .metric-change {
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .positive-change {
+            color: #2ecc71;
+        }
+        
+        .negative-change {
+            color: #e74c3c;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-color);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: var(--card-bg);
+            border-color: var(--border-color) var(--border-color) var(--card-bg);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Dashboard Financier</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#comparative">Analyse comparative</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#predictions">Prédictions</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="me-2 text-light">Mode jour</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="themeSwitch">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="ms-2 text-light">Mode nuit</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        Tableau de bord
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Bienvenue sur le dashboard financier</h5>
+                        <p class="card-text">Ce dashboard vous permet de visualiser et d'analyser les données financières d'Apple et Microsoft.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Revenus (en millions $)
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="key-metric">390,036</span>
+                            <span class="metric-change positive-change">+3.7% <i class="bi bi-arrow-up"></i></span>
+                        </div>
+                        <p class="card-text text-muted">Apple (2024)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Bénéfice net (en millions $)
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="key-metric">97,150</span>
+                            <span class="metric-change positive-change">+3.0% <i class="bi bi-arrow-up"></i></span>
+                        </div>
+                        <p class="card-text text-muted">Apple (2024)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Marge brute
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="key-metric">43.8%</span>
+                            <span class="metric-change positive-change">+0.6% <i class="bi bi-arrow-up"></i></span>
+                        </div>
+                        <p class="card-text text-muted">Apple (2024)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Évolution des revenus
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="stockChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4" id="comparative">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Analyse comparative
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="comparativeTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab">Revenus</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="margin-tab" data-bs-toggle="tab" data-bs-target="#margin" type="button" role="tab">Marges brutes</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="income-tab" data-bs-toggle="tab" data-bs-target="#income" type="button" role="tab">Bénéfice net</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="growth-tab" data-bs-toggle="tab" data-bs-target="#growth" type="button" role="tab">Croissance</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="comparativeTabsContent">
+                            <div class="tab-pane fade show active" id="revenue" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="revenueComparisonChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="margin" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="marginComparisonChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="income" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="incomeComparisonChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="growth" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="growthComparisonChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4" id="predictions">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Prédictions financières
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="predictionTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="revenue-pred-tab" data-bs-toggle="tab" data-bs-target="#revenue-pred" type="button" role="tab">Revenus</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="margin-pred-tab" data-bs-toggle="tab" data-bs-target="#margin-pred" type="button" role="tab">Marges brutes</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="predictionTabsContent">
+                            <div class="tab-pane fade show active" id="revenue-pred" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="revenuePredictionChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="margin-pred" role="tabpanel">
+                                <div class="chart-container">
+                                    <canvas id="marginPredictionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Données pour les graphiques
+        const years = ['2022', '2023', '2024'];
+        
+        // Données Apple
+        const appleRevenue = [368234, 375970, 390036];
+        const appleNetIncome = [99803, 94320, 97150];
+        const appleGrossMargin = [46.4, 43.2, 43.8];
+        
+        // Données Microsoft
+        const msftRevenue = [188852, 205357, 225340];
+        const msftNetIncome = [67430, 72361, 72361];
+        const msftGrossMargin = [66.8, 69.0, 70.0];
+        
+        // Données de prédiction
+        const futureYears = ['2025', '2026'];
+        const applePredictedRevenue = [405637, 421863];
+        const msftPredictedRevenue = [247874, 272661];
+        const applePredictedMargin = [44.2, 44.5];
+        const msftPredictedMargin = [70.5, 71.0];
+
+        // Fonction pour charger les données comparatives
+        function loadComparativeData() {
+            console.log("Chargement des données comparatives...");
+            
+            // Graphique de comparaison des revenus
+            const revenueCtx = document.getElementById('revenueComparisonChart').getContext('2d');
+            const revenueComparisonChart = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Apple',
+                            data: appleRevenue,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Microsoft',
+                            data: msftRevenue,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparaison des revenus (en millions $)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Graphique de comparaison des marges brutes
+            const marginCtx = document.getElementById('marginComparisonChart').getContext('2d');
+            const marginComparisonChart = new Chart(marginCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Apple',
+                            data: appleGrossMargin,
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft',
+                            data: msftGrossMargin,
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparaison des marges brutes (%)'
+                        }
+                    }
+                }
+            });
+            
+            // Graphique de comparaison des bénéfices nets
+            const incomeCtx = document.getElementById('incomeComparisonChart').getContext('2d');
+            const incomeComparisonChart = new Chart(incomeCtx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Apple',
+                            data: appleNetIncome,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Microsoft',
+                            data: msftNetIncome,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparaison des bénéfices nets (en millions $)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Graphique de comparaison des taux de croissance
+            const growthCtx = document.getElementById('growthComparisonChart').getContext('2d');
+            
+            // Calculer les taux de croissance
+            const appleGrowth = [];
+            const msftGrowth = [];
+            
+            for (let i = 1; i < appleRevenue.length; i++) {
+                appleGrowth.push(((appleRevenue[i] - appleRevenue[i-1]) / appleRevenue[i-1]) * 100);
+                msftGrowth.push(((msftRevenue[i] - msftRevenue[i-1]) / msftRevenue[i-1]) * 100);
+            }
+            
+            const growthComparisonChart = new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: years.slice(1),
+                    datasets: [
+                        {
+                            label: 'Apple',
+                            data: appleGrowth,
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft',
+                            data: msftGrowth,
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Taux de croissance des revenus (%)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fonction pour charger les données de prédiction
+        function loadPredictionData() {
+            console.log("Chargement des données de prédiction...");
+            
+            // Graphique de prédiction des revenus
+            const revenuePredCtx = document.getElementById('revenuePredictionChart').getContext('2d');
+            
+            // Combiner les données historiques et les prédictions
+            const allYears = [...years, ...futureYears];
+            const allAppleRevenue = [...appleRevenue, ...applePredictedRevenue];
+            const allMsftRevenue = [...msftRevenue, ...msftPredictedRevenue];
+            
+            const revenuePredictionChart = new Chart(revenuePredCtx, {
+                type: 'line',
+                data: {
+                    labels: allYears,
+                    datasets: [
+                        {
+                            label: 'Apple (historique)',
+                            data: appleRevenue.concat(Array(futureYears.length).fill(null)),
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Apple (prédiction)',
+                            data: Array(years.length).fill(null).concat(applePredictedRevenue),
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderColor: 'rgba(52, 152, 219, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft (historique)',
+                            data: msftRevenue.concat(Array(futureYears.length).fill(null)),
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft (prédiction)',
+                            data: Array(years.length).fill(null).concat(msftPredictedRevenue),
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderColor: 'rgba(46, 204, 113, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Prédiction des revenus (en millions $)'
+                        }
+                    }
+                }
+            });
+            
+            // Graphique de prédiction des marges brutes
+            const marginPredCtx = document.getElementById('marginPredictionChart').getContext('2d');
+            
+            // Combiner les données historiques et les prédictions
+            const allAppleMargin = [...appleGrossMargin, ...applePredictedMargin];
+            const allMsftMargin = [...msftGrossMargin, ...msftPredictedMargin];
+            
+            const marginPredictionChart = new Chart(marginPredCtx, {
+                type: 'line',
+                data: {
+                    labels: allYears,
+                    datasets: [
+                        {
+                            label: 'Apple (historique)',
+                            data: appleGrossMargin.concat(Array(futureYears.length).fill(null)),
+                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Apple (prédiction)',
+                            data: Array(years.length).fill(null).concat(applePredictedMargin),
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderColor: 'rgba(52, 152, 219, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft (historique)',
+                            data: msftGrossMargin.concat(Array(futureYears.length).fill(null)),
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Microsoft (prédiction)',
+                            data: Array(years.length).fill(null).concat(msftPredictedMargin),
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderColor: 'rgba(46, 204, 113, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Prédiction des marges brutes (%)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Graphique principal
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Apple',
+                        data: appleRevenue,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Microsoft',
+                        data: msftRevenue,
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Évolution des revenus (en millions $)'
+                    }
+                }
+            }
+        });
+        
+        // Chargement des données pour les graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM chargé, initialisation des graphiques...');
+            
+            // Charger les données pour les graphiques
+            loadComparativeData();
+            loadPredictionData();
+        });
+        
+        // Basculer entre les modes jour et nuit
+        document.getElementById('themeSwitch').addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+        
+        // Assistant IA
+        document.addEventListener('DOMContentLoaded', function() {
+            // Créer les éléments de l'assistant IA
+            const aiAssistant = document.createElement('div');
+            aiAssistant.id = 'ai-assistant';
+            aiAssistant.className = 'position-fixed bottom-0 end-0 m-3';
+            aiAssistant.style.zIndex = '1050';
+            
+            const aiToggleBtn = document.createElement('button');
+            aiToggleBtn.id = 'ai-toggle-btn';
+            aiToggleBtn.className = 'btn btn-primary rounded-circle p-3';
+            aiToggleBtn.style.width = '60px';
+            aiToggleBtn.style.height = '60px';
+            aiToggleBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+                    <path d="M16 8c0 3.866-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7zM5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                </svg>
+            `;
+            
+            aiAssistant.appendChild(aiToggleBtn);
+            document.body.appendChild(aiAssistant);
+            
+            // Créer la modal de l'assistant
+            const aiModal = document.createElement('div');
+            aiModal.className = 'modal fade';
+            aiModal.id = 'ai-modal';
+            aiModal.tabIndex = '-1';
+            aiModal.setAttribute('aria-labelledby', 'ai-modal-label');
+            aiModal.setAttribute('aria-hidden', 'true');
+            
+            aiModal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="ai-modal-label">Assistant IA</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="ai-conversation" class="mb-3" style="max-height: 300px; overflow-y: auto;">
+                                <div class="ai-message">
+                                    <p>Bonjour ! Je suis votre assistant IA pour l'analyse financière. Comment puis-je vous aider aujourd'hui ?</p>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="ai-input" class="form-control" placeholder="Posez votre question...">
+                                <button class="btn btn-primary" id="ai-submit">Envoyer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(aiModal);
+            
+            // Initialiser la modal Bootstrap
+            const bsModal = new bootstrap.Modal(document.getElementById('ai-modal'));
+            
+            // Ouvrir la modal lorsqu'on clique sur le bouton
+            aiToggleBtn.addEventListener('click', function() {
+                bsModal.show();
+            });
+            
+            // Fonction pour ajouter un message à la conversation
+            function addMessage(message, isUser = false) {
+                const aiConversation = document.getElementById('ai-conversation');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'user-message text-end' : 'ai-message';
+                messageDiv.innerHTML = `<p class="${isUser ? 'bg-primary text-white p-2 rounded d-inline-block' : ''}">${message}</p>`;
+                aiConversation.appendChild(messageDiv);
+                aiConversation.scrollTop = aiConversation.scrollHeight;
+            }
+            
+            // Fonction pour envoyer une requête à l'assistant IA
+            function sendQuery(query) {
+                // Ajouter la question de l'utilisateur à la conversation
+                addMessage(query, true);
+                
+                // Simuler une réponse de l'assistant (dans une version réelle, cela ferait un appel API)
+                setTimeout(function() {
+                    let response = "Je ne peux pas répondre à cette question pour le moment.";
+                    
+                    // Réponses prédéfinies basées sur des mots-clés
+                    if (query.toLowerCase().includes('revenus') || query.toLowerCase().includes('revenue')) {
+                        response = "Les revenus d'Apple ont atteint 390,036 millions de dollars en 2024, soit une augmentation de 3.7% par rapport à 2023.";
+                    } else if (query.toLowerCase().includes('marge')) {
+                        response = "La marge brute d'Apple était de 43.8% en 2024, tandis que celle de Microsoft était de 70.0%. Microsoft a une marge brute significativement plus élevée.";
+                    } else if (query.toLowerCase().includes('prévision') || query.toLowerCase().includes('prediction')) {
+                        response = "Selon nos prédictions, les revenus d'Apple devraient atteindre environ 405,637 millions de dollars en 2025 et 421,863 millions de dollars en 2026.";
+                    } else if (query.toLowerCase().includes('perspective') || query.toLowerCase().includes('outlook')) {
+                        response = "Les perspectives financières pour Apple sont positives, avec une croissance prévue des revenus et une stabilisation des marges brutes autour de 44%.";
+                    }
+                    
+                    addMessage(response);
+                }, 1000);
+            }
+            
+            // Gérer l'envoi du formulaire
+            document.getElementById('ai-submit').addEventListener('click', function() {
+                const aiInput = document.getElementById('ai-input');
+                const query = aiInput.value.trim();
+                if (query) {
+                    sendQuery(query);
+                    aiInput.value = '';
+                }
+            });
+            
+            // Gérer l'envoi du formulaire avec la touche Entrée
+            document.getElementById('ai-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.trim();
+                    if (query) {
+                        sendQuery(query);
+                        this.value = '';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
